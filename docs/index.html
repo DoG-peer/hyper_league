@@ -3,8 +3,102 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>test</title>
+    <style type="text/css">
+.input_view .result_view {
+  font-family:MS明朝;
+}
+    </style>
   </head>
   <body>
-    hello world
+<script src="https://unpkg.com/hyperapp"></script>
+<script>
+const { h, app } = hyperapp
+
+const state = {
+  players: [],
+  matrix: {},
+}
+
+const actions = {
+  down: value => state => ({ count: state.count - value }),
+  up: value => state => ({ count: state.count + value }),
+  update_players: text => state => ({ "players": get_players(text) }),
+}
+
+const input_view = (state, actions) =>
+  h("textarea", {
+    "placeholder": "参加者の名前を書いてください。",
+    "cols": "28",
+    "rows": "15",
+    "class": "input_view",
+    "onkeyup": (e) => actions["update_players"](e.target.value),
+  })
+
+// <div id="result" cols="90" rows="15" style="font-family:SimHei;"></div>
+const result_view = (state, actions) =>
+  h("div", {
+    "cols": 90,
+    "rows": 15,
+    "class": result_view,
+  }, get_table(state))
+
+
+const get_players = (text) =>
+  text.split("\n").filter((line) => line != "")
+
+const get_table = (state) => {
+  table = create_table(state.players, state.matrix)
+  lines = table
+  return lines_to_elements(lines)
+}
+
+const create_table = (players, matrix) => {
+  let mat = []
+  let header = [""]
+  for (player of players) {
+    header.push(player)
+  }
+  header.push("勝 - 負")
+  mat.push(header)
+
+  for (var player of players) {
+    let row = [player]
+    for (var player_vs of players) {
+      row.push(
+        h("span",
+          {onclick: ((a, b) => () => (console.log(a, b)))(player, player_vs)},
+          "_"))
+    }
+
+    mat.push(row)
+  }
+  return mat
+}
+
+
+const lines_to_elements = (lines) => {
+  let elms = []
+  console.log(lines)
+  for (var line of lines) {
+    if (Array.isArray(line)) {
+      for (var item of line) {
+        elms.push(item)
+      }
+    } else {
+      elms.push(line)
+    }
+    elms.push(h("br"))
+  }
+  return elms
+}
+
+const view = (state, actions) =>
+  h("div", {}, [
+    input_view(state, actions),
+    result_view(state, actions),
+  ])
+
+window.main = app(state, actions, view, document.body)
+    </script>
   </body>
 </html>
